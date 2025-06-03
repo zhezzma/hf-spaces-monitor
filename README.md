@@ -109,10 +109,10 @@ jobs:
         
     - name: Run monitor
       env:
-        HF_TOKEN: $${{ secrets.HF_TOKEN }}
-        USERNAME: $${{ secrets.USERNAME }}
-        SPACE_LIST: $${{ secrets.SPACE_LIST }}
-        GLOBAL_TIMEOUT_SECONDS: $${{ secrets.GLOBAL_TIMEOUT_SECONDS }}
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        USERNAME: ${{ secrets.USERNAME }}
+        SPACE_LIST: ${{ secrets.SPACE_LIST }}
+        GLOBAL_TIMEOUT_SECONDS: ${{ secrets.GLOBAL_TIMEOUT_SECONDS }}
       run: python run.py
       
     - name: Deploy to GitHub Pages
@@ -168,8 +168,8 @@ hf-spaces-monitor/
 🚀 Hugging Face空间状态监控
 
 ┌─────────────┬─────────────┬─────────────┐
-│   总检查次数   │   成功率     │   最后更新    │
-│     156     │    94%     │  14:32:10   │
+│ 总检查次数   │   成功率    │   最后更新   │
+│     156     │    94%      │  14:32:10   │
 └─────────────┴─────────────┴─────────────┘
 
 🕒 2025-06-03 14:32:10
