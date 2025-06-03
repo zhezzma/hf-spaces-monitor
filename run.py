@@ -1,7 +1,6 @@
 import requests, time, os, datetime, logging
 import pytz
 import json
-import re
 from collections import OrderedDict
 from urllib.parse import quote
 
@@ -16,44 +15,6 @@ space_list = [space.strip() for space in space_list_str.split(",") if space.stri
 global_timeout_seconds = int(os.environ.get("GLOBAL_TIMEOUT_SECONDS", 1800))  # 全局超时时间
 repo_id = os.environ.get("GITHUB_REPOSITORY")  # GitHub仓库ID
 
-def validate_url(url):
-    """
-    验证URL是否有效
-    
-    Args:
-        url (str): 要验证的URL
-        
-    Returns:
-        bool: URL是否有效
-    """
-    # 检查URL长度（DNS标签限制）
-    if len(url) > 253:
-        return False
-    
-    # 检查域名部分的长度
-    try:
-        from urllib.parse import urlparse
-        parsed = urlparse(url)
-        domain = parsed.netloc
-        
-        # 检查域名长度
-        if len(domain) > 253:
-            return False
-            
-        # 检查每个子域名标签的长度（不能超过63个字符）
-        labels = domain.split('.')
-        for label in labels:
-            if len(label) > 63 or len(label) == 0:
-                return False
-                
-        # 检查是否包含有效字符
-        if not re.match(r'^[a-zA-Z0-9.-]+$', domain):
-            return False
-            
-        return True
-    except Exception:
-        return False
-
 def check_space_with_browser_emulation(space_name):
     """
     模拟浏览器访问指定的Hugging Face空间
@@ -64,92 +25,25 @@ def check_space_with_browser_emulation(space_name):
     Returns:
         tuple: (是否成功, 耗时秒数)
     """
-    # 构建完整的空间URL
     full_space_url = f"https://{username}-{space_name}.hf.space"
-    
-    # 验证URL有效性
-    if not validate_url(full_space_url):
-        logging.error(f"❌空间{space_name}的URL无效或过长: {full_space_url}")
-        return False, 0.0
-    
-    logging.info(f"开始模拟浏览器访问空间: {space_name}")
+    logging.info(f"开始模拟浏览器访问空间: {full_space_url}")
     start_time = time.time()
     
     try:
-        # 添加更多的请求头来模拟真实浏览器
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-        }
-        
         # 发送HTTP GET请求检查空间状态
-        response = requests.get(full_space_url, headers=headers, timeout=30, allow_redirects=True)
+        response = requests.get(full_space_url, timeout=30)
         response.raise_for_status()
         duration = time.time() - start_time
         logging.info(f"✅空间{space_name}访问正常, 耗时: {duration:.2f}秒")
         return True, duration
-        
-    except requests.exceptions.ConnectionError as e:
-        duration = time.time() - start_time
-        if "Failed to parse" in str(e) or "label empty or too long" in str(e):
-            logging.error(f"❌空间{space_name}URL解析失败 (可能是名称过长), 耗时: {duration:.2f}秒")
-        else:
-            logging.error(f"❌空间{space_name}连接失败, 耗时: {duration:.2f}秒: {e}")
-        return False, duration
-        
-    except requests.exceptions.Timeout as e:
-        duration = time.time() - start_time
-        logging.error(f"❌空间{space_name}访问超时, 耗时: {duration:.2f}秒")
-        return False, duration
-        
-    except requests.exceptions.HTTPError as e:
-        duration = time.time() - start_time
-        status_code = e.response.status_code if e.response else "未知"
-        logging.error(f"❌空间{space_name}HTTP错误 (状态码: {status_code}), 耗时: {duration:.2f}秒")
-        return False, duration
-        
     except requests.exceptions.RequestException as e:
         duration = time.time() - start_time
-        logging.error(f"❌空间{space_name}请求失败, 耗时: {duration:.2f}秒: {e}")
+        logging.error(f"❌空间{space_name}访问失败, 耗时: {duration:.2f}秒: {e}")
         return False, duration
-        
     except Exception as e:
         duration = time.time() - start_time
         logging.exception(f"❌空间{space_name}发生未知错误, 耗时: {duration:.2f}秒: {e}")
         return False, duration
-
-def check_space_name_validity(space_name):
-    """
-    检查空间名称是否有效
-    
-    Args:
-        space_name (str): 空间名称
-        
-    Returns:
-        bool: 名称是否有效
-    """
-    # 检查空间名称长度（避免URL过长）
-    max_space_name_length = 50  # 设置合理的限制
-    if len(space_name) > max_space_name_length:
-        logging.warning(f"⚠️空间名称过长: {space_name} (长度: {len(space_name)})")
-        return False
-    
-    # 检查用户名+空间名的组合长度
-    combined_length = len(username) + 1 + len(space_name)  # +1 for the dash
-    if combined_length > 63:  # DNS标签限制
-        logging.warning(f"⚠️用户名和空间名组合过长: {username}-{space_name} (长度: {combined_length})")
-        return False
-    
-    # 检查是否包含有效字符
-    if not re.match(r'^[a-zA-Z0-9_-]+$', space_name):
-        logging.warning(f"⚠️空间名称包含无效字符: {space_name}")
-        return False
-    
-    return True
 
 def rebuild_space(space_name):
     """
@@ -175,7 +69,7 @@ def rebuild_space(space_name):
     
     # 发送重建请求
     try:
-        response = requests.post(rebuild_url, headers=headers, timeout=30)
+        response = requests.post(rebuild_url, headers=headers)
         response.raise_for_status()
         logging.info(f"✅空间{space_name}重新构建请求发送成功")
     except requests.exceptions.RequestException as e:
@@ -192,7 +86,7 @@ def rebuild_space(space_name):
         
         try:
             # 获取空间状态
-            status_response = requests.get(status_url, headers=headers, timeout=30)
+            status_response = requests.get(status_url, headers=headers)
             status_response.raise_for_status()
             status_data = status_response.json()
             stage = status_data.get("stage", "")
@@ -270,22 +164,15 @@ def generate_data_and_html(results):
     # 添加当前检查结果
     current_results = {}
     for r in results:
-        # 标记无效的空间名称
-        space_name = r['space']
-        if r.get('invalid_name', False):
-            space_name += " (名称无效)"
-            
         if r["result"] is not None:
-            current_results[space_name] = {
+            current_results[r['space']] = {
                 "status": r['result'], 
-                "duration": f"{r['duration']:.2f}秒",
-                "error_type": r.get('error_type', '')
+                "duration": f"{r['duration']:.2f}秒"
             }
         else:
-            current_results[space_name] = {
+            current_results[r['space']] = {
                 "status": False, 
-                "duration": f"{r['duration']:.2f}秒",
-                "error_type": r.get('error_type', 'unknown')
+                "duration": f"{r['duration']:.2f}秒"
             }
     
     existing_data[formatted_time] = current_results
@@ -408,7 +295,6 @@ def generate_html_template():
             padding: 8px 12px;
             border-radius: 20px;
             font-size: 0.9em;
-            position: relative;
         }}
         
         .success {{ 
@@ -421,34 +307,6 @@ def generate_html_template():
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
-        }}
-        
-        .invalid-name {{
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }}
-        
-        .error-tooltip {{
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s;
-            z-index: 1000;
-        }}
-        
-        .space-result:hover .error-tooltip {{
-            opacity: 1;
-            visibility: visible;
         }}
         
         .footer {{
@@ -529,20 +387,6 @@ def generate_html_template():
 
     <script src="data.js"></script>
     <script>
-        // 获取错误类型的显示文本
-        function getErrorTypeText(errorType) {{
-            const errorTypes = {{
-                'url_invalid': 'URL无效',
-                'name_too_long': '名称过长',
-                'connection_error': '连接失败',
-                'timeout': '访问超时',
-                'http_error': 'HTTP错误',
-                'parse_error': 'URL解析失败',
-                'unknown': '未知错误'
-            }};
-            return errorTypes[errorType] || '未知错误';
-        }}
-
         // 加载并显示数据
         function loadData() {{
             if (typeof spaceStatusData === 'undefined') {{
@@ -587,22 +431,10 @@ def generate_html_template():
                 html += `<span class="timestamp">🕒 ${{timestamp}}</span>`;
                 
                 Object.entries(results).forEach(([space, result]) => {{
-                    let statusClass = result.status ? 'success' : 'failure';
+                    const statusClass = result.status ? 'success' : 'failure';
                     const statusIcon = result.status ? '✅' : '❌';
-                    
-                    // 检查是否是无效名称
-                    if (space.includes('(名称无效)')) {{
-                        statusClass = 'invalid-name';
-                    }}
-                    
                     html += `<div class="space-result ${{statusClass}}">`;
                     html += `${{statusIcon}} ${{space}}: ${{result.duration}}`;
-                    
-                    // 添加错误提示
-                    if (!result.status && result.error_type) {{
-                        html += `<div class="error-tooltip">${{getErrorTypeText(result.error_type)}}</div>`;
-                    }}
-                    
                     html += `</div>`;
                 }});
                 
@@ -634,17 +466,6 @@ if __name__ == "__main__":
         
         logging.info(f"正在处理空间: {space}")
         
-        # 首先检查空间名称有效性
-        if not check_space_name_validity(space):
-            results.append({
-                "space": space,
-                "result": False,
-                "duration": 0.0,
-                "invalid_name": True,
-                "error_type": "name_too_long"
-            })
-            continue
-        
         # 先检查空间状态
         status, duration = check_space_with_browser_emulation(space)
         
@@ -655,8 +476,7 @@ if __name__ == "__main__":
             results.append({
                 "space": space, 
                 "result": rebuild_result, 
-                "duration": rebuild_duration,
-                "error_type": "connection_error" if not rebuild_result else ""
+                "duration": rebuild_duration
             })
         else:
             # 空间正常运行
@@ -680,11 +500,8 @@ if __name__ == "__main__":
     # 输出最终结果
     success_count = sum(1 for r in results if r['result'] is True)
     total_count = len(results)
-    invalid_count = sum(1 for r in results if r.get('invalid_name', False))
     
     logging.info(f"监控结果: {success_count}/{total_count} 个空间运行正常")
-    if invalid_count > 0:
-        logging.warning(f"发现 {invalid_count} 个无效的空间名称")
     
     if exit_code != 0:
         logging.error("存在失败的空间，脚本以错误码退出")
