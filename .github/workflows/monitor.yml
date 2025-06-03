@@ -25,14 +25,19 @@ jobs:
         
     - name: Run monitor
       env:
-        HF_TOKEN: $${{ secrets.HF_TOKEN }}
-        USERNAME: $${{ secrets.USERNAME }}
-        SPACE_LIST: $${{ secrets.SPACE_LIST }}
-        GLOBAL_TIMEOUT_SECONDS: $${{ secrets.GLOBAL_TIMEOUT_SECONDS }}
-      run: python run.py
+        HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        USERNAME: ${{ secrets.USERNAME }}
+        SPACE_LIST: ${{ secrets.SPACE_LIST }}
+        GLOBAL_TIMEOUT_SECONDS: 1800
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        python run.py
+        pwd
+        ls -al
+        ls -al docs
       
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
-        github_token: $${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./docs
