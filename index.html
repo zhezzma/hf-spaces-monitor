@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hugging Face空间状态</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 150px;
+            margin: 5px;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .log-entry { 
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 10px;
+            background: #fafafa;
+            transition: all 0.3s ease;
+        }
+        
+        .log-entry:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .timestamp { 
+            font-weight: bold; 
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .space-result {
+            display: inline-block;
+            margin: 5px 10px 5px 0;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .success { 
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .failure { 
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .footer a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .stats {
+                flex-direction: column;
+            }
+            
+            .stat-card {
+                margin: 10px 0;
+            }
+            
+            .log-entry {
+                padding: 15px;
+                font-size: 14px;
+            }
+            
+            .footer {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Hugging Face空间状态监控</h1>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <span class="stat-number" id="total-checks">-</span>
+                <div>总检查次数</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="success-rate">-</span>
+                <div>成功率</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="last-update">-</span>
+                <div>最后更新</div>
+            </div>
+        </div>
+        
+        <div id="content" class="loading">
+            正在加载数据...
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        // 加载并显示数据
+        function loadData() {
+            if (typeof spaceStatusData === 'undefined') {
+                document.getElementById('content').innerHTML = 
+                    '<div class="loading">❌ 数据加载失败，请稍后刷新页面重试</div>';
+                return;
+            }
+
+            const contentDiv = document.getElementById('content');
+            const timestamps = Object.keys(spaceStatusData).reverse(); // 最新的在前
+            
+            if (timestamps.length === 0) {
+                contentDiv.innerHTML = '<div class="loading">📋 暂无监控数据</div>';
+                return;
+            }
+
+            // 计算统计信息
+            let totalChecks = 0;
+            let successCount = 0;
+            
+            timestamps.forEach(timestamp => {
+                const results = spaceStatusData[timestamp];
+                Object.values(results).forEach(result => {
+                    totalChecks++;
+                    if (result.status) successCount++;
+                });
+            });
+            
+            const successRate = totalChecks > 0 ? Math.round((successCount / totalChecks) * 100) : 0;
+            const lastUpdate = timestamps[0].split(' ')[1];
+            
+            // 更新统计卡片
+            document.getElementById('total-checks').textContent = totalChecks;
+            document.getElementById('success-rate').textContent = successRate + '%';
+            document.getElementById('last-update').textContent = lastUpdate;
+
+            // 生成日志条目HTML
+            let html = '';
+            timestamps.forEach(timestamp => {
+                const results = spaceStatusData[timestamp];
+                html += `<div class="log-entry">`;
+                html += `<span class="timestamp">🕒 ${timestamp}</span>`;
+                
+                Object.entries(results).forEach(([space, result]) => {
+                    const statusClass = result.status ? 'success' : 'failure';
+                    const statusIcon = result.status ? '✅' : '❌';
+                    html += `<div class="space-result ${statusClass}">`;
+                    html += `${statusIcon} ${space}: ${result.duration}`;
+                    html += `</div>`;
+                });
+                
+                html += '</div>';
+            });
+            
+            contentDiv.innerHTML = html;
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
