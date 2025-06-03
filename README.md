@@ -258,13 +258,3 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 - [Hugging Face](https://huggingface.co/) 提供优秀的 Spaces 平台
 - [GitHub Actions](https://github.com/features/actions) 提供免费的 CI/CD 服务
-- 所有贡献者和用户的支持
-
-## 📞 联系方式
-
-- 作者：[F-Droid](https://linux.do/u/f-droid)
-- 项目链接：[GitHub Repository](https://github.com/your-username/hf-spaces-monitor)
-
----
-
-⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！
