@@ -1,0 +1,38 @@
+name: Hugging Face Spaces Monitor
+
+on:
+  schedule:
+    # 每小时运行一次
+    - cron: '0 * * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        pip install requests pytz
+        
+    - name: Run monitor
+      env:
+        HF_TOKEN: $${{ secrets.HF_TOKEN }}
+        USERNAME: $${{ secrets.USERNAME }}
+        SPACE_LIST: $${{ secrets.SPACE_LIST }}
+        GLOBAL_TIMEOUT_SECONDS: $${{ secrets.GLOBAL_TIMEOUT_SECONDS }}
+      run: python run.py
+      
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: $${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
