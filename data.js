@@ -1,16 +1,16 @@
 const spaceStatusData = {
-  "2025-06-09 20:27:55": {
+  "2025-06-10 00:17:33": {
     "cloudstudio-runner-zheooma": {
       "status": true,
-      "duration": "0.12秒"
+      "duration": "0.11秒"
     },
     "cloudstudio-runner": {
       "status": true,
-      "duration": "0.32秒"
+      "duration": "0.04秒"
     },
     "cnb-runner-godgodgame": {
       "status": true,
-      "duration": "0.13秒"
+      "duration": "0.06秒"
     }
   }
 };
