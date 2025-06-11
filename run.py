@@ -32,10 +32,19 @@ def check_space_with_browser_emulation(space_name):
     try:
         # 发送HTTP GET请求检查空间状态
         response = requests.get(full_space_url, timeout=30)
+        
+        # 401状态码也视为正常访问
+        if response.status_code == 401:
+            duration = time.time() - start_time
+            logging.info(f"✅空间{space_name}访问正常(需要认证), 耗时: {duration:.2f}秒")
+            return True, duration
+        
+        # 其他状态码正常检查
         response.raise_for_status()
         duration = time.time() - start_time
         logging.info(f"✅空间{space_name}访问正常, 耗时: {duration:.2f}秒")
         return True, duration
+        
     except requests.exceptions.RequestException as e:
         duration = time.time() - start_time
         logging.error(f"❌空间{space_name}访问失败, 耗时: {duration:.2f}秒: {e}")
