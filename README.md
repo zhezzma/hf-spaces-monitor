@@ -240,6 +240,11 @@ if len(existing_data) > 50:
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 ```
 
+
+```
+cloudstudio-runner-zheooma,cloudstudio-runner,cnb-runner-godgodgame,cnb-runner-igiven,cnb-runner-zhepama,cursor2api,msmail,trae2api
+```
+
 ## 🤝 贡献指南
 
 欢迎提交 Issue 和 Pull Request！
