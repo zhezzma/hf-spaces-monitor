@@ -1,9 +1,9 @@
 name: Hugging Face Spaces Monitor
 
 on:
-  schedule:
+  #schedule:
     # 每小时运行一次
-    - cron: '0 */4 * * *'
+    #- cron: '0 */4 * * *'
   workflow_dispatch: # 允许手动触发
 
 jobs:
