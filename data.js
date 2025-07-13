@@ -1,28 +1,20 @@
 const spaceStatusData = {
-  "2025-07-08 09:09:54": {
-    "cloudstudio-runner-zheooma": {
+  "2025-07-13 22:29:40": {
+    "tencent-ide-runner": {
       "status": true,
-      "duration": "0.35秒"
+      "duration": "0.29秒"
     },
     "cloudstudio-runner": {
       "status": true,
-      "duration": "0.16秒"
+      "duration": "0.14秒"
     },
-    "cnb-runner-godgodgame": {
+    "cnb-runner": {
       "status": true,
-      "duration": "0.07秒"
-    },
-    "cursor2api": {
-      "status": true,
-      "duration": "0.03秒"
+      "duration": "0.13秒"
     },
     "msmail": {
       "status": true,
-      "duration": "0.06秒"
-    },
-    "trae2api": {
-      "status": true,
-      "duration": "0.05秒"
+      "duration": "0.11秒"
     }
   }
 };
