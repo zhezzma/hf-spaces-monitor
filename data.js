@@ -1,20 +1,20 @@
 const spaceStatusData = {
-  "2025-07-16 04:10:57": {
+  "2025-07-16 08:47:11": {
     "tencent-ide-runner": {
       "status": true,
-      "duration": "0.44秒"
+      "duration": "0.11秒"
     },
     "cloudstudio-runner": {
       "status": true,
-      "duration": "0.40秒"
+      "duration": "0.12秒"
     },
     "cnb-runner": {
       "status": true,
-      "duration": "0.31秒"
+      "duration": "0.04秒"
     },
     "msmail": {
       "status": true,
-      "duration": "0.89秒"
+      "duration": "0.05秒"
     }
   }
 };
